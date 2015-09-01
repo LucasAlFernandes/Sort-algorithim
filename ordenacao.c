@@ -25,6 +25,8 @@ void * ordenaVetorordenacaoQuick_t(void * args)
 	int j 		= ((ordenacao*)args)->fim;
 	int pivo 	= ((ordenacao*)args)->vet[(int)(((ordenacao*)args)->inicio+((ordenacao*)args)->fim)/2];
 	int tmp;
+	pthread_t thread[2];// = calloc(2, sizeof(pthread_t));
+	ordenacao  * agd = malloc(1 * sizeof(ordenacao)), *age = malloc(1 * sizeof(ordenacao));
 
 	while (i < j)
 	{
@@ -39,9 +41,7 @@ void * ordenaVetorordenacaoQuick_t(void * args)
 			i++;
 			j--;
 		}
-	}
-
-	ordenacao  * agd = malloc(1 * sizeof(ordenacao)), * age = malloc(1 * sizeof(ordenacao));
+	}	
 
 	agd->inicio 	= ((ordenacao*)args)->inicio;
 	agd->fim 		= j;
@@ -50,8 +50,7 @@ void * ordenaVetorordenacaoQuick_t(void * args)
 	age->inicio 	= i;
 	age->fim 		= ((ordenacao*)args)->fim;
 	age->vet 		= ((ordenacao*)args)->vet;
-
-	pthread_t thread[2];
+	
 	if(((ordenacao*)args)->inicio < j - 1)
 		pthread_create(&thread[0], NULL, ordenaVetorordenacaoQuick_t, agd);
 	if(((ordenacao*)args)->fim > i + 1)
@@ -60,7 +59,6 @@ void * ordenaVetorordenacaoQuick_t(void * args)
 
 	pthread_join(thread[0], NULL);
 	pthread_join(thread[1], NULL);
-
 }
 void executarordenacaoQuickSort_t(int * vet, int max)
 {
@@ -290,25 +288,34 @@ void main()
 {
 	int op;
 	int inc = 10;
-	int max = 1000000000;
 	int i, j;
 
-	FILE *fp = fopen("DadosQuick.txt", "ab");
+	FILE *fp = fopen("/media/shared/Bubble.txt", "ab");
 
-	for (i = 0; inc < max; i++)
+	for (i = 0; i < 60; i++)
 	{
-		inc = 11.793 * pow(2.7182, (0.2545 * i));
-		clock_t t1, t2;
-		int * vet  = calloc(inc, sizeof(int));
-		for (j = 0; j < inc; j++)
-			vet[j] = rand() % 100;
+		inc = 8 * pow(2.71, (0.245 * i));
+		int v = 0;
+		float cont = 9999999;
 
-		t1 = clock();
-		ordenaVetorordenacaoQuick(0, inc, vet);
-		t2 = clock();
-		float diff = (((float)t2 - (float)t1) / 1000000.0F) * 1000;
-		printf("Valores = %d | Tempo = %f\n",inc, diff);
-		fprintf(fp, "Valores = %d | Tempo = %f\n", inc, diff);
+
+		while (v < 5)
+		{
+			clock_t t1, t2;
+			int * vet = calloc(inc, sizeof(int));
+			for (j = 0; j < inc; j++)
+				vet[j] = rand() % 100;
+
+			t1 = clock();
+			executarBubbleSort(vet, inc);
+			t2 = clock();
+			float diff = (((float)t2 - (float)t1) / 1000000.0F) * 1000;	
+			cont = diff < cont ? diff : cont;
+			v++;
+			free(vet);
+		}
+		printf("Valores = %d | Tempo = %f\n",inc, cont);
+		fprintf(fp, "%d;%f-", inc, diff);
 	}
 	fclose(fp);
 }
